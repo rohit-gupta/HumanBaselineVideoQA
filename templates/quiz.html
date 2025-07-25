@@ -5,23 +5,27 @@
     
     {% if question %}
         <div class="video-container">
-            <video id="video-player" controls>
-                <source src="{{ video_url }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            
-            <!-- Custom video progress bar with markers -->
-            <div class="custom-progress-container">
-                <div class="custom-progress-bar">
-                    <div class="progress-track"></div>
-                    <div class="progress-fill"></div>
-                    <div class="marker start-marker" title="Start Time"></div>
-                    <div class="marker end-marker" title="End Time"></div>
+            {% if clip_type == 'gif' %}
+                <img id="video-player" src="{{ video_url }}" alt="Question clip">
+            {% else %}
+                <video id="video-player" controls>
+                    <source src="{{ video_url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+
+                <!-- Custom video progress bar with markers -->
+                <div class="custom-progress-container">
+                    <div class="custom-progress-bar">
+                        <div class="progress-track"></div>
+                        <div class="progress-fill"></div>
+                        <div class="marker start-marker" title="Start Time"></div>
+                        <div class="marker end-marker" title="End Time"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
+                    </div>
                 </div>
-                <div class="time-display">
-                    <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
-                </div>
-            </div>
+            {% endif %}
         </div>
         
         <div>
@@ -136,6 +140,7 @@
             }
         </style>
         
+        {% if clip_type != 'gif' %}
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const video = document.getElementById('video-player');
@@ -145,15 +150,10 @@
                 const progressBar = document.querySelector('.custom-progress-bar');
                 const currentTimeDisplay = document.getElementById('current-time');
                 const totalTimeDisplay = document.getElementById('total-time');
-                
-                {% if question.question_start_time %}
-                const startTime = {{ question.question_start_time }};
-                {% else %}
-                const startTime = 0;
-                {% endif %}
-                
-                {% if question.question_stop_time %}
-                const stopTime = {{ question.question_stop_time }};
+
+                const startTime = {{ start_time|default(0) }};
+                {% if stop_time is not none %}
+                const stopTime = {{ stop_time }};
                 {% else %}
                 const stopTime = null;
                 {% endif %}
@@ -296,8 +296,10 @@
                 });
             });
         </script>
+        {% endif %}
     {% else %}
         <p>No more questions available.</p>
         <a href="{{ url_for('stats') }}">View Stats</a>
+
     {% endif %}
 {% endblock %}
