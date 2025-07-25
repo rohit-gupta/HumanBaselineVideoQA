@@ -7,6 +7,14 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 app = Flask(__name__)
 app.secret_key = 'dev-key'
 DATA_DIR = 'data'
+
+# Clip/GIF mode configuration
+# When CLIP_MODE is True, the application will look for pre-generated video
+# clips or GIFs in ``CLIP_FOLDER`` whose filenames are ``<question_id>.mp4``
+# or ``<question_id>.gif``. If no clip is found, it falls back to the full
+# video referenced by ``video_id``.
+CLIP_MODE = os.getenv('CLIP_MODE', 'false').lower() == 'true'
+CLIP_FOLDER = os.getenv('CLIP_FOLDER', os.path.join('static', 'clips'))
 os.makedirs(DATA_DIR, exist_ok=True)
 QUESTIONS_FILE = os.path.join(DATA_DIR, 'questions_clean.jsonl')
 USERS_FILE = os.path.join(DATA_DIR, 'users.csv')
@@ -151,7 +159,28 @@ def quiz():
         return render_template('quiz.html', question=None)
     
     question = random.choice(unanswered)
-    video_url = f"/static/videos/{question['video_id']}.mp4"
+
+    # Determine which media file to use
+    clip_type = 'video'
+    if CLIP_MODE:
+        clip_mp4 = os.path.join(CLIP_FOLDER, f"{question['question_id']}.mp4")
+        clip_gif = os.path.join(CLIP_FOLDER, f"{question['question_id']}.gif")
+        if os.path.exists(clip_mp4):
+            video_url = f"/{clip_mp4}"
+        elif os.path.exists(clip_gif):
+            video_url = f"/{clip_gif}"
+            clip_type = 'gif'
+        else:
+            video_url = f"/static/videos/{question['video_id']}.mp4"
+    else:
+        video_url = f"/static/videos/{question['video_id']}.mp4"
+
+    if CLIP_MODE:
+        start_time = 0
+        stop_time = None
+    else:
+        start_time = question.get('question_start_time', 0)
+        stop_time = question.get('question_stop_time')
     
     # Get any existing label for this question by this user
     existing_label = None
@@ -166,11 +195,14 @@ def quiz():
     except:
         pass
     
-    return render_template('quiz.html', 
-                          question=question, 
-                          video_url=video_url, 
+    return render_template('quiz.html',
+                          question=question,
+                          video_url=video_url,
                           class_labels=CLASS_LABELS,
-                          existing_label=existing_label)
+                          existing_label=existing_label,
+                          clip_type=clip_type,
+                          start_time=start_time,
+                          stop_time=stop_time)
 
 @app.route('/submit', methods=['POST'])
 @login_required

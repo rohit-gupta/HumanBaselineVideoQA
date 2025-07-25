@@ -40,6 +40,13 @@ flask run
 
 Place your MP4 videos in the `static/videos` directory. The filename should match the `video_id` in your questions (e.g., `v001.mp4`).
 
+### Clip/GIF Mode
+
+Set the environment variable `CLIP_MODE=true` to use pre-generated clips or GIFs
+instead of seeking within the full videos. Clips should be placed in
+`static/clips` (or the folder specified by `CLIP_FOLDER`) and named
+`<question_id>.mp4` or `question_id.gif`.
+
 ## Sample Questions
 
 Sample questions are provided in `sample_questions.jsonl`. Import them through the web interface after logging in.
