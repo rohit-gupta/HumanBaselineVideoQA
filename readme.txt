@@ -47,6 +47,10 @@ instead of seeking within the full videos. Clips should be placed in
 `static/clips` (or the folder specified by `CLIP_FOLDER`) and named
 `<question_id>.mp4` or `question_id.gif`.
 
+`CLIP_MODE=TRUE CLIP_FOLDER=static/clips/ python app.py`
+
+
+
 ## Sample Questions
 
 Sample questions are provided in `sample_questions.jsonl`. Import them through the web interface after logging in.
